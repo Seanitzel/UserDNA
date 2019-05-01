@@ -3,9 +3,16 @@ const dnaManagerClass = require('./typingdnaREST.js'),
       express = require('express'),
       app = express(),
       port = process.env.port || 3000,
-      cors = require('cors')
+      cors = require('cors'),
+      mongoUser = require('./mongo/route.js'),
+      mongoose = require("mongoose")
+
+mongoose.connect('mongodb+srv://misha1109:bmSEzMsMbzPfZuvV@cluster0-isuez.mongodb.net/typingDNA?retryWrites=true',{useNewUrlParser: true})
+mongoose.Promise = global.Promise;
 
 app.use(cors())
+
+
 
 app.listen(port, () => {
     console.log(`port ${port} active listening`)
@@ -36,6 +43,18 @@ app.get('/api/post/addPattern/:id/:pattern', (req, res) => {
 
 app.get('/api/post/deleteUser/:id', (req,res) => {
     dnaManagerObj.deleteUser(req.params.id, (val) => {
+        res.send(val)
+    })
+})
+
+app.get('/api/get/mongoAllUsers', (req,res ) => {
+    mongoUser.getAllUsers((val) => {
+        res.send(val)
+    })
+})
+
+app.get('/api/get/mongoAddUser/:name', (req,res ) => {
+    mongoUser.addUser(req.params.name, (val) => {
         res.send(val)
     })
 })

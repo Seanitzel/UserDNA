@@ -24,6 +24,9 @@
                                       v-model="userID"
                                       label="User ID"
                         ></v-text-field>
+                        <v-btn @click="mongoAllUsers" id="show_users">
+                            Show all users
+                        </v-btn>
                         <v-btn @click="add" id="add_user">
                             Add User
                         </v-btn>
@@ -35,6 +38,13 @@
                         </v-btn>
                     </v-layout>
                 </v-card>
+                    <v-flex xs12 pa-4 v-if="users">
+                        <v-card >                                
+                            <li v-for="el,i in users" class="display-1">
+                                {{i+1}}: {{el.name}}
+                            </li>
+                        </v-card>
+                    </v-flex>
             </v-tab-item>
             <v-tab-item value="tab-2">
                 <v-layout row wrap justify-center center>
@@ -43,7 +53,7 @@
                         </v-textarea>
                     </v-flex>
                     <v-flex xs12 my-3 style="text-align: center">
-                        <v-btn round large color="blue lighten-3" @click="verify" id="identify">
+                        <v-btn round large color="blue lighten-3" @click="verGlobaly" id="identify">
                             Identify Globally
                         </v-btn>
                     </v-flex>
@@ -77,6 +87,17 @@
                             </v-card-text>
                         </v-card>
                     </v-flex>
+                    <v-flex xs12 pa-4 v-if="similarUsers">
+                        <v-card class="display-1" v-for="res in similarUsers">
+                            <v-card-text class="title">
+                                Name: {{res[1]}}
+                            </v-card-text>
+                            <v-card-text class="title">
+                                Score: {{res[0].score}}
+                            </v-card-text>
+                            <v-divider></v-divider>
+                        </v-card>
+                    </v-flex>
                 </v-layout>
             </v-tab-item>
 
@@ -100,6 +121,8 @@
                 userID:  null,
                 result:  null,
                 pattern: null,
+                users: null,
+                similarUsers: null,
                 results: ['Not A Match', 'Match'],
             }
         },
@@ -135,6 +158,32 @@
                 let val     = this.getValues()
                 this.result = await deleteUser(val[0])
             },
+
+            async mongoAllUsers(){
+                this.users = await mongoGetAllUsers()
+            },
+
+            async verGlobaly(){
+                this.similarUsers = null
+                await this.mongoAllUsers()
+                let temp
+                let result = []
+                let val = await this.getValues()
+                await this.asyncForEach( this.users ,async (user) => {
+                    temp = await verifyPattern(user.name, val[1])
+                    result.push([temp,user.name])
+                })
+                result.sort(function(a,b){
+                    return b[0].score - a[0].score
+                })
+                this.similarUsers = result.slice(0,5)
+            },
+
+            async asyncForEach(array, callback) {
+                for (let index = 0; index < array.length; index++) {
+                    await callback(array[index], index, array);
+                }
+            }
         },
     }
 
@@ -145,6 +194,7 @@
 
     async function addUser(id, pattern) {
         const res = await fetch(`http://localhost:${port}/api/post/addPattern/${id}/${pattern}`)
+        mongoAddUser(id)
         return res.json()
     }
 
@@ -163,6 +213,26 @@
     async function deleteUser(id) {
         const res = await fetch(`http://localhost:${port}/api/post/deleteUser/${id}`)
         return res.json()
+    }
+
+    async function mongoGetAllUsers(){
+        const res = await fetch(`http://localhost:${port}/api/get/mongoAllUsers`)
+        return res.json()
+    }
+
+    async function similarUsersPatt(){
+        const users = await mongoGetAllUsers()
+        let res = []
+        let temp
+        users.forEach( async (user) => {
+            temp = await verifiedPattern(user.name,pattern)
+            res.push(temp)
+        })
+        return res
+    }
+
+    async function mongoAddUser( name){
+        await fetch(`http://localhost:${port}/api/get/mongoAddUser/${name}`)
     }
 </script>
 
