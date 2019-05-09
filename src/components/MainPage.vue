@@ -57,6 +57,22 @@
                             Identify Globally
                         </v-btn>
                     </v-flex>
+                    <v-flex v-if="progress"  xs12 my-1 style="text-align: center">
+                        <v-progress-circular width="8" size="50" :value="progress" color="purple">
+                            {{ parseInt(progress) }}
+                        </v-progress-circular>
+                    </v-flex>
+                    <v-flex xs12 pa-4 v-if="similarUsers">
+                        <v-card class="display-1" v-for="res in similarUsers">
+                            <v-card-text class="title">
+                                Name: {{res[1]}}
+                            </v-card-text>
+                            <v-card-text class="title">
+                                Score: {{res[0].score}}
+                            </v-card-text>
+                            <v-divider></v-divider>
+                        </v-card>
+                    </v-flex>
                     <v-divider></v-divider>
                     <v-flex xs12>
                         <v-text-field box clearable id="user_input"
@@ -87,17 +103,6 @@
                             </v-card-text>
                         </v-card>
                     </v-flex>
-                    <v-flex xs12 pa-4 v-if="similarUsers">
-                        <v-card class="display-1" v-for="res in similarUsers">
-                            <v-card-text class="title">
-                                Name: {{res[1]}}
-                            </v-card-text>
-                            <v-card-text class="title">
-                                Score: {{res[0].score}}
-                            </v-card-text>
-                            <v-divider></v-divider>
-                        </v-card>
-                    </v-flex>
                 </v-layout>
             </v-tab-item>
 
@@ -124,6 +129,7 @@
                 users: null,
                 similarUsers: null,
                 results: ['Not A Match', 'Match'],
+                progress:0
             }
         },
         methods: {
@@ -147,6 +153,7 @@
                 let val      = await this.getValues()
                 this.pattern = val[1]
                 this.result  = await verifyPattern(val[0], val[1])
+                this.dnaReset.reset()
             },
 
             async check() {
@@ -163,26 +170,45 @@
                 this.users = await mongoGetAllUsers()
             },
 
+            async changeProg(precent){
+                if(precent>0 && precent<100){
+                    this.progress = precent
+                    console.log(this.progress)
+                }
+                else{
+                    this.progress = 0
+                }
+            },
+
             async verGlobaly(){
                 this.similarUsers = null
                 await this.mongoAllUsers()
                 let temp
                 let result = []
                 let val = await this.getValues()
+                let precent = 100/this.users.length
+                let changeProg = this.changeProg
                 await this.asyncForEach( this.users ,async (user) => {
                     temp = await verifyPattern(user.name, val[1])
+                    changeProg(precent)
+                    precent += 100/this.users.length
                     result.push([temp,user.name])
                 })
                 result.sort(function(a,b){
                     return b[0].score - a[0].score
                 })
                 this.similarUsers = result.slice(0,5)
+                this.dnaReset.reset()
             },
 
             async asyncForEach(array, callback) {
                 for (let index = 0; index < array.length; index++) {
                     await callback(array[index], index, array);
                 }
+            },
+
+            dnaReset(){
+                dna.reset()
             }
         },
     }
