@@ -83,6 +83,7 @@ class typingdnaManager{
     }
 
     checkUser( id,callback){
+        console.log(1)
         let options = {
         hostname : this.base_url,
         port : 443,
@@ -97,18 +98,18 @@ class typingdnaManager{
 
         let responseData = '';
         let req = this.https.request(options, function(res) {
-        res.on('data', function(chunk) {
-            responseData += chunk;
-        });
+            res.on('data', function(chunk) {
+                responseData += chunk;
+            });
 
-        res.on('end', function() {
-            // console.log(JSON.parse(responseData));
-            callback(JSON.parse(responseData))
-        });
+            res.on('end', function() {
+                // console.log(JSON.parse(responseData));
+                callback(JSON.parse(responseData))
+            });
         });
 
         req.on('error', function(e) {
-        console.error(e);
+            console.error(e);
         });
 
         req.end();

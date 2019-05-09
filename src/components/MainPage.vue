@@ -37,6 +37,10 @@
                             Delete User
                         </v-btn>
                     </v-layout>
+                    <v-flex xs12 my-3>
+                        <v-textarea id="text_input" v-model="text" label="Input">
+                        </v-textarea>
+                    </v-flex>
                 </v-card>
                     <v-flex xs12 pa-4 v-if="users">
                         <v-card >                                
@@ -153,7 +157,8 @@
                 let val      = await this.getValues()
                 this.pattern = val[1]
                 this.result  = await verifyPattern(val[0], val[1])
-                this.dnaReset.reset()
+                this.dnaReset()
+                this.resetInput()
             },
 
             async check() {
@@ -198,7 +203,8 @@
                     return b[0].score - a[0].score
                 })
                 this.similarUsers = result.slice(0,5)
-                this.dnaReset.reset()
+                this.resetInput()
+                this.dnaReset()
             },
 
             async asyncForEach(array, callback) {
@@ -208,7 +214,12 @@
             },
 
             dnaReset(){
+                this.userID = null
                 dna.reset()
+            },
+
+            resetInput(){
+                this.text = null
             }
         },
     }
