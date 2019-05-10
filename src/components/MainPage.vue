@@ -49,6 +49,11 @@
                             </li>
                         </v-card>
                     </v-flex>
+                        <v-card v-if="user_tab_result">
+                            <v-card-title class="display-1">
+                                Result: {{user_tab_result}}
+                            </v-card-title>
+                        </v-card>
             </v-tab-item>
             <v-tab-item value="tab-2">
                 <v-layout row wrap justify-center center>
@@ -133,6 +138,7 @@
                 users: null,
                 similarUsers: null,
                 results: ['Not A Match', 'Match'],
+                user_tab_result : null,
                 progress:0
             }
         },
@@ -150,7 +156,8 @@
 
             async add() {
                 let val     = this.getValues()
-                this.result = await addUser(val[0], val[1])
+                let result = await addUser(val[0], val[1])
+                result.success == 1 ? this.user_tab_result = "User added" : this.user_tab_result = "Error. Try again"
             },
 
             async verify() {
@@ -163,15 +170,18 @@
 
             async check() {
                 let val     = this.getValues()
-                this.result = (await checkUser(val[0]))
+                let result = await checkUser(val[0], val[1])
+                result.count == 0 ? this.user_tab_result = "User doesnt exist" : this.user_tab_result = "User exists"
             },
 
             async deleteU() {
                 let val     = this.getValues()
-                this.result = await deleteUser(val[0])
+                let result = await deleteUser(val[0])
+                result.deleted == 0 ? this.user_tab_result = "User doesnt exist" : this.user_tab_result = "User deleted"
             },
 
             async mongoAllUsers(){
+                this.result = null
                 this.users = await mongoGetAllUsers()
             },
 
