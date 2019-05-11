@@ -47,5 +47,17 @@ const getAllUsers = (callback) => {
          callback(err)
       })
 }
+const deleteUser = (user_name, callback) => {
+  User.find( { name: user_name} ).remove().exec().then(result => {
+    const response = {
+      message : "user deleted",
+      result : true
+    }
+    callback(response)
+    })
+  .catch(err => {
+    callback( err)
+  }); 
+}
 
-module.exports = {getAllUsers, addUser}
+module.exports = {getAllUsers, addUser, deleteUser}

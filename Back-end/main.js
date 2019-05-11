@@ -59,3 +59,9 @@ app.get('/api/get/mongoAddUser/:name', (req,res ) => {
     })
 })
 
+app.get('/api/get/mongoDeleteUser/:name', (req,res ) => {
+    mongoUser.deleteUser(req.params.name, (val) => {
+        res.send(val)
+    })
+})
+

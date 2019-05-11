@@ -158,6 +158,7 @@
                 let val     = this.getValues()
                 let result = await addUser(val[0], val[1])
                 result.success == 1 ? this.user_tab_result = "User added" : this.user_tab_result = "Error. Try again"
+                this.users = null
             },
 
             async verify() {
@@ -172,12 +173,14 @@
                 let val     = this.getValues()
                 let result = await checkUser(val[0], val[1])
                 result.count == 0 ? this.user_tab_result = "User doesnt exist" : this.user_tab_result = "User exists"
+                this.users = null
             },
 
             async deleteU() {
                 let val     = this.getValues()
                 let result = await deleteUser(val[0])
                 result.deleted == 0 ? this.user_tab_result = "User doesnt exist" : this.user_tab_result = "User deleted"
+                this.user = null
             },
 
             async mongoAllUsers(){
@@ -231,6 +234,7 @@
             resetInput(){
                 this.text = null
             }
+
         },
     }
 
@@ -259,6 +263,7 @@
 
     async function deleteUser(id) {
         const res = await fetch(`http://localhost:${port}/api/post/deleteUser/${id}`)
+
         return res.json()
     }
 
@@ -280,6 +285,10 @@
 
     async function mongoAddUser( name){
         await fetch(`http://localhost:${port}/api/get/mongoAddUser/${name}`)
+    }
+
+    async function mongoDeleteUser( name){
+        await fetch(`http://localhost:${port}/api/get/mongoDeleteUser/${name}`)
     }
 </script>
 
