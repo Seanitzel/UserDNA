@@ -38,27 +38,27 @@
                         </v-btn>
                     </v-layout>
                     <v-flex xs12 my-3>
-                        <v-textarea id="text_input" v-model="text" label="Input">
+                        <v-textarea v-model="text" label="Input">
                         </v-textarea>
                     </v-flex>
                 </v-card>
-                    <v-flex xs12 pa-4 v-if="users">
-                        <v-card >                                
-                            <li v-for="el,i in users" class="display-1">
-                                {{i+1}}: {{el.name}}
-                            </li>
-                        </v-card>
-                    </v-flex>
-                        <v-card v-if="user_tab_result">
-                            <v-card-title class="display-1">
-                                Result: {{user_tab_result}}
-                            </v-card-title>
-                        </v-card>
+                <v-flex xs12 pa-4 v-if="users">
+                    <v-card>
+                        <v-card-text v-for="el,i in users" :key="el.name" class="body-2">
+                            {{i+1}}: {{el.name}}
+                        </v-card-text>
+                    </v-card>
+                </v-flex>
+                <v-snackbar top
+                            v-model="snackbarActive"
+                            :timeout="5000">
+                    Result: {{ user_tab_result }}
+                </v-snackbar>
             </v-tab-item>
             <v-tab-item value="tab-2">
                 <v-layout row wrap justify-center center>
                     <v-flex xs12 my-3>
-                        <v-textarea id="text_input" v-model="text" label="Input">
+                        <v-textarea v-model="text" label="Input">
                         </v-textarea>
                     </v-flex>
                     <v-flex xs12 my-3 style="text-align: center">
@@ -66,13 +66,13 @@
                             Identify Globally
                         </v-btn>
                     </v-flex>
-                    <v-flex v-if="progress"  xs12 my-1 style="text-align: center">
+                    <v-flex v-if="progress" xs12 my-1 style="text-align: center">
                         <v-progress-circular width="8" size="50" :value="progress" color="purple">
                             {{ parseInt(progress) }}
                         </v-progress-circular>
                     </v-flex>
                     <v-flex xs12 pa-4 v-if="similarUsers">
-                        <v-card class="display-1" v-for="res in similarUsers">
+                        <v-card class="display-1" v-for="res in similarUsers" :key="res[1]">
                             <v-card-text class="title">
                                 Name: {{res[1]}}
                             </v-card-text>
@@ -117,7 +117,24 @@
 
             <v-tab-item value="tab-3">
                 <v-card flat>
-                    <v-card-text>{{ text }}</v-card-text>
+                    <v-card-text>
+                        <v-container text-xs-center>
+                            <v-layout row wrap align-center>
+                                <v-flex xs12 py-3>
+                        <span class="display-1 font-weight-bold">
+                            Welcome to User DNA!
+                        </span>
+                                </v-flex>
+                                <v-flex xs12 py-3>
+                                <span class="body-2">
+                            This project uses the TypingDNA API to demonstrate user authentication using typing
+                            biometrics. You can use this demo to play and try to see how closely you and your friends
+                            type words and sentences.
+                                </span>
+                                </v-flex>
+                            </v-layout>
+                        </v-container>
+                    </v-card-text>
                 </v-card>
             </v-tab-item>
         </v-tabs>
@@ -131,15 +148,16 @@
     export default {
         data() {
             return {
-                text:    null,
-                userID:  null,
-                result:  null,
-                pattern: null,
-                users: null,
-                similarUsers: null,
-                results: ['Not A Match', 'Match'],
-                user_tab_result : null,
-                progress:0
+                text:            null,
+                userID:          null,
+                result:          null,
+                pattern:         null,
+                users:           null,
+                similarUsers:    null,
+                results:         ['Not A Match', 'Match'],
+                user_tab_result: null,
+                progress:        0,
+                snackbarActive:  false,
             }
         },
         methods: {
@@ -155,10 +173,11 @@
             },
 
             async add() {
-                let val     = this.getValues()
-                let result = await addUser(val[0], val[1])
-                result.success == 1 ? this.user_tab_result = "User added" : this.user_tab_result = "Error. Try again"
-                this.users = null
+                let val              = this.getValues()
+                let result           = await addUser(val[0], val[1])
+                this.user_tab_result = result.success === 1 ? 'User Added' : 'Error, try again'
+                this.snackbarActive  = true
+                this.users           = null
             },
 
             async verify() {
@@ -170,70 +189,71 @@
             },
 
             async check() {
-                let val     = this.getValues()
-                let result = await checkUser(val[0], val[1])
-                result.count == 0 ? this.user_tab_result = "User doesnt exist" : this.user_tab_result = "User exists"
-                this.users = null
+                let val              = this.getValues()
+                let result           = await checkUser(val[0], val[1])
+                this.user_tab_result = result.count === 0 ? 'User doesnt exist' : 'User exists'
+                this.snackbarActive  = true
+                this.users           = null
             },
 
             async deleteU() {
-                let val     = this.getValues()
-                let result = await deleteUser(val[0])
-                result.deleted == 0 ? this.user_tab_result = "User doesnt exist" : this.user_tab_result = "User deleted"
-                this.user = null
+                let val              = this.getValues()
+                let result           = await deleteUser(val[0])
+                this.user_tab_result = result.deleted === 0 ? 'User doesnt exist' : 'User deleted!'
+                this.snackbarActive  = true
+                this.users           = null
             },
 
-            async mongoAllUsers(){
+            async mongoAllUsers() {
                 this.result = null
-                this.users = await mongoGetAllUsers()
+                this.users  = await mongoGetAllUsers()
             },
 
-            async changeProg(precent){
-                if(precent>0 && precent<100){
+            async changeProg(precent) {
+                if (precent > 0 && precent < 100) {
                     this.progress = precent
                     console.log(this.progress)
-                }
-                else{
+                } else {
                     this.progress = 0
                 }
             },
 
-            async verGlobaly(){
+            async verGlobaly() {
                 this.similarUsers = null
                 await this.mongoAllUsers()
                 let temp
-                let result = []
-                let val = await this.getValues()
-                let precent = 100/this.users.length
+                let result     = []
+                let val        = await this.getValues()
+                let precent    = 100 / this.users.length
                 let changeProg = this.changeProg
-                await this.asyncForEach( this.users ,async (user) => {
+                await this.asyncForEach(this.users, async (user) => {
                     temp = await verifyPattern(user.name, val[1])
                     changeProg(precent)
-                    precent += 100/this.users.length
-                    result.push([temp,user.name])
+                    precent += 100 / this.users.length
+                    result.push([temp, user.name])
                 })
-                result.sort(function(a,b){
+                result.sort(function (a, b) {
                     return b[0].score - a[0].score
                 })
-                this.similarUsers = result.slice(0,5)
+                this.similarUsers = result.slice(0, 5)
                 this.resetInput()
                 this.dnaReset()
             },
 
             async asyncForEach(array, callback) {
                 for (let index = 0; index < array.length; index++) {
-                    await callback(array[index], index, array);
+                    await callback(array[index], index, array)
                 }
             },
 
-            dnaReset(){
+            dnaReset() {
                 this.userID = null
                 dna.reset()
             },
 
-            resetInput(){
+            resetInput() {
                 this.text = null
-            }
+            },
 
         },
     }
@@ -245,7 +265,7 @@
 
     async function addUser(id, pattern) {
         const res = await fetch(`http://localhost:${port}/api/post/addPattern/${id}/${pattern}`)
-        mongoAddUser(id)
+        await mongoAddUser(id)
         return res.json()
     }
 
@@ -263,31 +283,31 @@
 
     async function deleteUser(id) {
         const res = await fetch(`http://localhost:${port}/api/post/deleteUser/${id}`)
-
+        await mongoDeleteUser(id)
         return res.json()
     }
 
-    async function mongoGetAllUsers(){
+    async function mongoGetAllUsers() {
         const res = await fetch(`http://localhost:${port}/api/get/mongoAllUsers`)
         return res.json()
     }
 
-    async function similarUsersPatt(){
+    async function similarUsersPatt() {
         const users = await mongoGetAllUsers()
-        let res = []
+        let res     = []
         let temp
-        users.forEach( async (user) => {
-            temp = await verifiedPattern(user.name,pattern)
+        users.forEach(async (user) => {
+            temp = await verifiedPattern(user.name, pattern)
             res.push(temp)
         })
         return res
     }
 
-    async function mongoAddUser( name){
+    async function mongoAddUser(name) {
         await fetch(`http://localhost:${port}/api/get/mongoAddUser/${name}`)
     }
 
-    async function mongoDeleteUser( name){
+    async function mongoDeleteUser(name) {
         await fetch(`http://localhost:${port}/api/get/mongoDeleteUser/${name}`)
     }
 </script>
