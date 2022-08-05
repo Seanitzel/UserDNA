@@ -9,7 +9,7 @@
     "test:unit": "vue-cli-service test:unit"
   },
   "dependencies": {
-    "mongoose": "^5.5.4",
+    "mongoose": "^5.7.5",
     "puppeteer": "^1.14.0",
     "vue": "^2.6.6",
     "vuetify": "^1.5.5"
